@@ -1,14 +1,13 @@
-## Kullanılan Sorgular
-
-### `departments` Tablosu Oluşturma Sorgusu
+## Used Queries
 
 ```sql
+### `departments` Table Creation Query
 CREATE TABLE departments (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100)
 );
 
-### `departments` Tablosu Oluşturma Sorgusu
+### `departments` Table Creation Query
 CREATE TABLE employees (
     id SERIAL PRIMARY KEY,
     first_name VARCHAR(50),
@@ -18,7 +17,7 @@ CREATE TABLE employees (
     salary NUMERIC(10,2)
 );
 
-### `employee_department_view` View Oluşturma Sorgusu
+### `employee_department_view` View Creation Query
 CREATE VIEW employee_department_view AS
 SELECT
     e.id AS employee_id,
@@ -32,7 +31,7 @@ FROM
 JOIN
     departments d ON e.department_id = d.id;
 
-### Kullanılan Örnekler
+### Used Examples
 
 INSERT INTO employees (id, first_name, last_name, department_id, hire_date, salary)
 VALUES
@@ -50,7 +49,7 @@ VALUES
 (4, 'Marketing'),
 (5, 'Sales');
 
-### `GetEmployeeDepartmentData` Func Oluşturma Sorgusu
+### `GetEmployeeDepartmentData` Function Creation Query
 CREATE OR REPLACE FUNCTION GetEmployeeDepartmentData()
 RETURNS TABLE(
     emp_id integer,
@@ -75,8 +74,10 @@ END;
 $$ LANGUAGE plpgsql;
 
 ```
-## Çıktılar
-    <img src="public/images/db-connection.png" alt="Db Connection" width="200">
-    <img src="assets/images/select-object.png" alt="Select Object" width="200">
-    <img src="assets/images/line-chart.png" alt="Line Chart" width="200">
-    <img src="assets/images/bar-chart.png" alt="Bar Chart" width="200">
+
+## Outputs
+
+![Db Connection](public/images/db-connection.png)
+![Select Object](public/images/select-object.png)
+![Line Chart](public/images/line-chart.png)
+![Bar Chart](public/images/bar-chart.png)
