@@ -1,3 +1,6 @@
+import { MultiSelectChangeEvent } from "primereact/multiselect";
+import { SelectItemOptionsType } from "primereact/selectitem";
+
 export interface RedirectToChartFormType {
   selectedView: string;
   selectedFunction: string;
@@ -27,4 +30,22 @@ export interface ResponseData {
 export interface XColumn {
   name: string;
   values: string[];
+}
+export type FormFieldType = {
+  control: any;
+  name: string;
+  label: string;
+  required?: string;
+  type: "dropdown" | "text" | "number" | "multiselect"; // "multiselect" seçeneğini ekleyin
+  options?: SelectItemOptionsType | undefined;
+  disabled?: boolean;
+  onchange?: MultiSelectChangeEvent;
+};
+
+export interface DbType {
+  system: string;
+  server: string;
+  username: string;
+  password: string;
+  database: string;
 }

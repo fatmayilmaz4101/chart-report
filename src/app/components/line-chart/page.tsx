@@ -3,21 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Chart } from "primereact/chart";
 import { useSearchParams } from "next/navigation";
 import { getColumnsData, getFuncColumnsData } from "@/app/services/DbService";
-
-export interface YColumn {
-  column: {
-    name: string;
-    values: string[];
-  }[];
-}
-export interface ResponseData {
-  xColumn: XColumn;
-  yColumn: YColumn[];
-}
-export interface XColumn {
-  name: string;
-  values: string[];
-}
+import { ResponseData } from "@/app/types";
 
 export default function LineChart() {
   const [chartData, setChartData] = useState<any>({});
@@ -28,22 +14,17 @@ export default function LineChart() {
   const viewName = searchParams.get("viewName") || "";
   const y = JSON.parse(decodeURIComponent(searchParams.get("y") || "[]"));
   const connectionString = searchParams.get("connStr") || "";
-  const isFunc = searchParams.get("isFunc") === "true"; // Function mı yoksa View mı
+  const isFunc = searchParams.get("isFunc") === "true";
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log("isFunc: ", isFunc);
         let response: ResponseData;
-
         if (isFunc) {
           response = await getFuncColumnsData(connectionString, viewName, x, y);
         } else {
           response = await getColumnsData(connectionString, viewName, x, y);
         }
-
-        console.log("Response Data: ", response);
-
         const xLabels = response.xColumn.values;
 
         const datasets = response.yColumn.flatMap((yCol) =>
@@ -56,8 +37,6 @@ export default function LineChart() {
             tension: 0.4,
           }))
         );
-
-        console.log("Datasets: ", datasets);
 
         const data = {
           labels: xLabels,
@@ -78,7 +57,7 @@ export default function LineChart() {
           plugins: {
             title: {
               display: true,
-              text: viewName, // Grafiğin başlığı
+              text: viewName,
               color: textColor,
               font: {
                 size: 20,

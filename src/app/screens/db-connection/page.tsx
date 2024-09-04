@@ -3,17 +3,18 @@ import React, { useEffect, useRef, useState } from "react";
 import { FormField } from "@/app/components/form-field/page";
 import { useForm } from "react-hook-form";
 import { Button } from "primereact/button";
-import { connectToDatabase, DbType } from "@/app/services/DbConnectionService";
+import { connectToDatabase } from "@/app/services/DbConnectionService";
 import { CharTypeOptions, DbSystemOptions } from "@/app/enums/DbSystem";
 import { Toast } from "primereact/toast";
 import PopUp from "@/app/components/pop-up/page";
 import { getFunctions, getViews } from "@/app/services/DbService";
 import { useRouter } from "next/navigation";
-import { RedirectToChartFormType } from "@/app/types";
+import { DbType, RedirectToChartFormType } from "@/app/types";
 
 const DbConnection = () => {
   const toast = useRef<Toast>(null);
   const router = useRouter();
+  const [connectionStr, setConnectionStr] = useState<string>("");
   const [showPopup, setShowPopup] = useState(false);
   const [resp, setResp] = useState<{ view: string; columns: string[] }[]>([]);
   const [funcResp, setFuncResp] = useState<
@@ -91,8 +92,6 @@ const DbConnection = () => {
       life: 3000,
     });
   };
-
-  const [connectionStr, setConnectionStr] = useState<string>("");
 
   useEffect(() => {
     if (connectionStr) {

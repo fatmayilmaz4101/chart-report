@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { Chart as RChart } from "primereact/chart";
 import { useSearchParams } from "next/navigation";
-import { ResponseData } from "../line-chart/page";
 import { getColumnsData, getFuncColumnsData } from "@/app/services/DbService";
+import { ResponseData } from "@/app/types";
 
 export default function BarChart() {
   const [chartData, setChartData] = useState({});

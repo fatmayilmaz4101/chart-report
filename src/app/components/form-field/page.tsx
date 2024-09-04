@@ -1,22 +1,10 @@
+import { FormFieldType } from "@/app/types";
 import { Dropdown } from "primereact/dropdown";
 import { FloatLabel } from "primereact/floatlabel";
 import { InputNumber } from "primereact/inputnumber";
 import { InputText } from "primereact/inputtext";
-import { MultiSelect, MultiSelectChangeEvent } from "primereact/multiselect"; // MultiSelect bileşenini ekleyin
-import { SelectItemOptionsType } from "primereact/selectitem";
-import { ChangeEventHandler } from "react";
+import { MultiSelect } from "primereact/multiselect";
 import { Controller } from "react-hook-form";
-
-type FormFieldType = {
-  control: any;
-  name: string;
-  label: string;
-  required?: string;
-  type: "dropdown" | "text" | "number" | "multiselect"; // "multiselect" seçeneğini ekleyin
-  options?: SelectItemOptionsType | undefined;
-  disabled?: boolean;
-  onchange?: MultiSelectChangeEvent;
-};
 
 export const FormField = ({
   control,
@@ -26,7 +14,6 @@ export const FormField = ({
   label,
   options,
   disabled = false,
-  onchange,
 }: FormFieldType) => {
   return (
     <>

@@ -23,11 +23,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
         ></link>
       </head>
       <body>
-          <PrimeReactProvider>
-            <LayoutProvider>
-              <Layout>{children}</Layout>
-            </LayoutProvider>
-          </PrimeReactProvider>
+        <PrimeReactProvider>
+          <LayoutProvider>
+            <Layout>{children}</Layout>
+          </LayoutProvider>
+        </PrimeReactProvider>
       </body>
     </html>
   );

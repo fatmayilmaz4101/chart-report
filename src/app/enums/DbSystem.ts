@@ -1,7 +1,5 @@
-export enum DbSystem {
+export enum DbSystem { //**** */
   PostgreSQL = 1,
-  MongoDb,
-  MsSQL,
 }
 export const DbSystemOptions = [
   { label: "PostgreSQL", value: DbSystem.PostgreSQL },

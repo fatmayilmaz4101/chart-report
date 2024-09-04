@@ -7,8 +7,6 @@ export const getViews = async (
     const response = await ApiClient.get("/Db/views", {
       params: { connectionString: connectionString },
     });
-    console.log("getViews: ", response.data);
-
     return response.data; // API'den gelen view'ları döndür
   } catch (error) {
     console.error("Error fetching database views:", error);
@@ -34,8 +32,6 @@ export const getColumnsData = async (
         return new URLSearchParams(params).toString();
       },
     });
-    console.log("getColumnsData: ", response.data);
-
     return response.data;
   } catch (error) {
     console.error("Error fetching view datas:", error);
@@ -49,7 +45,6 @@ export const getFunctions = async (
     const response = await ApiClient.get("/Db/functions", {
       params: { connectionString: connectionString },
     });
-    console.log("getFunctions: ", response.data);
     return response.data;
   } catch (error) {
     console.error("Error fetching database views:", error);
@@ -74,7 +69,6 @@ export const getFuncColumnsData = async (
         return new URLSearchParams(params).toString();
       },
     });
-    console.log("getFuncColumnsData: ", response.data);
     return response.data;
   } catch (error) {
     console.error("Error fetching funct datas:", error);
