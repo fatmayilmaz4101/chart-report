@@ -7,40 +7,68 @@ import { connectToDatabase, DbType } from "@/app/services/DbConnectionService";
 import { CharTypeOptions, DbSystemOptions } from "@/app/enums/DbSystem";
 import { Toast } from "primereact/toast";
 import PopUp from "@/app/components/pop-up/page";
-import { getViews, ViewType } from "@/app/services/DbService";
+import { getFunctions, getViews } from "@/app/services/DbService";
 import { useRouter } from "next/navigation";
+import { RedirectToChartFormType } from "@/app/types";
 
 const DbConnection = () => {
   const toast = useRef<Toast>(null);
-  const [showPopup, setShowPopup] = useState(false);
-  const [viewResponse, setViewResponse] = useState<ViewType[]>();
-  const [resp, setResp] = useState<{ view: string; columns: string[] }[]>([]);
-  const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
   const router = useRouter();
+  const [showPopup, setShowPopup] = useState(false);
+  const [resp, setResp] = useState<{ view: string; columns: string[] }[]>([]);
+  const [funcResp, setFuncResp] = useState<
+    { func: string; columns: string[] }[]
+  >([]);
+  const [selectedView, setSelectedView] = useState("");
+  const [selectedFunc, setSelectedFunc] = useState("");
+  const [viewColumns, setViewColumns] = useState<string[]>([]);
+  const [funcColumns, setFuncColumns] = useState<string[]>([]);
 
-  const handleLineChart = (viewData: ViewType) => {
-    // Serialize the columns array to a JSON string and encode it
-    const columnsString = encodeURIComponent(JSON.stringify(viewData.columns));
-
-    // Create query parameters string
+  const handleLineChart = (
+    x: string,
+    y: string[],
+    viewName: string,
+    connStr: string,
+    isFunc: boolean
+  ) => {
+    const columnsString = encodeURIComponent(JSON.stringify(y));
     const queryParams = new URLSearchParams({
-      view: viewData.view,
-      columns: columnsString, // Send as a JSON string
+      x,
+      y: columnsString,
+      viewName,
+      connStr,
+      isFunc: isFunc.toString(),
     }).toString();
-
-    // Construct the full URL
     const url = `/components/line-chart?${queryParams}`;
+    router.replace(url);
+  };
 
+  const handleBarChart = (
+    x: string,
+    y: string[],
+    viewName: string,
+    connStr: string,
+    isFunc: boolean
+  ) => {
+    const columnsString = encodeURIComponent(JSON.stringify(y));
+    const queryParams = new URLSearchParams({
+      x,
+      y: columnsString,
+      viewName,
+      connStr,
+      isFunc: isFunc.toString(),
+    }).toString();
+    const url = `/components/bar-chart?${queryParams}`;
     router.replace(url);
   };
 
   const { control, handleSubmit } = useForm<DbType>();
   const {
-    control: popControl,
-    handleSubmit: popHandle,
+    control: popUpControl,
+    handleSubmit: popUpHandle,
     watch,
     setValue,
-  } = useForm<popupType>();
+  } = useForm<RedirectToChartFormType>();
 
   const togglePopup = () => {
     setShowPopup(!showPopup);
@@ -70,76 +98,112 @@ const DbConnection = () => {
     if (connectionStr) {
       (async () => {
         try {
-          const response = await getViews(connectionStr);
-          setViewResponse(response);
+          const viewResponse = await getViews(connectionStr);
           showSuccess("Views fetched successfully");
-
-          const formattedResp =
-            response?.map((v) => ({
+          const formattedView =
+            viewResponse?.map((v) => ({
               view: v.view,
               columns: v.columns,
             })) || [];
-          await setResp(formattedResp);
-          console.log(response);
+          await setResp(formattedView);
+          const funcResponse = await getFunctions(connectionStr);
+
+          showSuccess("Functions fetched successfully");
+          const formattedFunc =
+            funcResponse?.map((v) => ({
+              func: v.func,
+              columns: v.columns,
+            })) || [];
+          await setFuncResp(formattedFunc);
         } catch (error) {
-          console.error("Get view error: ", error);
-          showError("No views found in the database");
+          console.error("Get view or func error: ", error);
+          showError("No views or functions found in the database");
         }
       })();
     }
   }, [connectionStr]);
 
-  useEffect(() => {
-    console.log("views: ", viewResponse);
-  }, [viewResponse]);
-
-  const onSubmit = async (data: DbType) => {
-    console.log("data: ", data);
+  const connectToDb = async (data: DbType) => {
     try {
       const response = await connectToDatabase(data);
-      setConnectionStr(response);
+      await setConnectionStr(response);
       showSuccess("Database connection successful.");
       togglePopup();
-      console.log("connection successful: ", response);
-      await console.log("resp: ", resp);
     } catch (error) {
       console.error("Connection error: ", error);
       showError("Failed to connect to the database.");
+      return;
     }
   };
 
-  interface popupType {
-    selectedView: string;
-    chart: string;
-    columns: string[];
-    x: string,
-    y: string[]
-  }
-  useEffect(()=>{
-    const y = watch("y");
-    
-  },[watch("y")])
   useEffect(() => {
     const selectedView = watch("selectedView");
-    const func = async () => {
-      if (selectedView) {
-        const view = await resp.find((r) => r.view === selectedView);
-        if (view) {
-          setSelectedColumns(view.columns);
-          setValue("columns", []);
-        }
+    const selectedFunc = watch("selectedFunction");
+
+    const fetchColumns = async () => {
+      setSelectedView(selectedView);
+      const view = await resp.find((r) => r.view === selectedView);
+
+      if (view) {
+        setViewColumns(view.columns);
+        setValue("columns", []);
+      }
+
+      setSelectedFunc(selectedFunc);
+      const func = await funcResp.find((r) => r.func === selectedFunc);
+
+      if (func) {
+        setFuncColumns(func.columns);
+        setValue("columns", []);
       }
     };
-    func();
-  }, [watch("selectedView")]);
+    fetchColumns();
+  }, [watch("selectedView"), watch("selectedFunction")]);
 
-  const onSubmitt = async (data: popupType) => {
+  const redirectToChart = async (data: RedirectToChartFormType) => {
     const selectedView = resp.find((r) => r.view === data.selectedView);
-    if (!selectedView) return;
-    if (data.chart == "Line Chart") {
-      handleLineChart(selectedView);
-    } else if (data.chart == "Bar Chart") {
-      router.replace("/components/line-chart");
+    const selectedFunc = funcResp.find((r) => r.func === data.selectedFunction);
+
+    if (selectedView) {
+      const isFunc = false;
+      if (data.chart === "Line Chart") {
+        handleLineChart(
+          data.x,
+          data.y,
+          selectedView.view,
+          connectionStr,
+          isFunc
+        );
+      } else if (data.chart === "Bar Chart") {
+        handleBarChart(
+          data.x,
+          data.y,
+          selectedView.view,
+          connectionStr,
+          isFunc
+        );
+      }
+    } else if (selectedFunc) {
+      const isFunc = true;
+      if (data.chart === "Line Chart") {
+        handleLineChart(
+          data.x,
+          data.y,
+          selectedFunc.func,
+          connectionStr,
+          isFunc
+        );
+      } else if (data.chart === "Bar Chart") {
+        handleBarChart(
+          data.x,
+          data.y,
+          selectedFunc.func,
+          connectionStr,
+          isFunc
+        );
+      }
+    } else {
+      console.error("Neither view nor function was selected.");
     }
   };
 
@@ -184,7 +248,7 @@ const DbConnection = () => {
           label="Database"
         />
         <Button
-          onClick={handleSubmit(onSubmit)}
+          onClick={handleSubmit(connectToDb)}
           label="Connect"
           severity="success"
           text
@@ -196,38 +260,82 @@ const DbConnection = () => {
         <div className="card col-12 p-fluid">
           <FormField
             type="dropdown"
-            control={popControl}
-            required="View selection is required"
+            control={popUpControl}
             options={resp.map((r) => ({ label: r.view, value: r.view }))}
             name="selectedView"
             label="Select view"
+            disabled={!!selectedFunc} // Diğer alan seçiliyse devre dışı bırak
           />
+          <div
+            style={{
+              margin: "10px",
+              textAlign: "center",
+            }}
+          >
+            OR
+          </div>
           <FormField
             type="dropdown"
-            control={popControl}
+            control={popUpControl}
+            options={funcResp.map((r) => ({ label: r.func, value: r.func }))}
+            name="selectedFunction"
+            label="Select function"
+            disabled={!!selectedView} // Diğer alan seçiliyse devre dışı bırak
+          />
+
+          <FormField
+            type="dropdown"
+            control={popUpControl}
             required="Chart type is required"
             options={CharTypeOptions}
             name="chart"
             label="Select chart type"
           />
-          {selectedColumns.length > 0 && (
+          {viewColumns.length > 0 && selectedView && (
             <>
               <FormField
-                type="multiselect"
-                control={popControl}
+                type="dropdown"
+                control={popUpControl}
                 required="Column selection is required"
-                options={selectedColumns.map((col) => ({
+                options={viewColumns.map((col) => ({
                   label: col,
                   value: col,
                 }))}
                 name="y"
-                label="Select columns"
+                label="Select columns (sayısal veriler, tarih vb)"
               />
               <FormField
                 type="dropdown"
-                control={popControl}
+                control={popUpControl}
                 required="Row selection is required"
-                options={selectedColumns.map((col) => ({
+                options={viewColumns.map((col) => ({
+                  label: col,
+                  value: col,
+                }))}
+                name="x"
+                label="Select row"
+              />
+            </>
+          )}
+
+          {funcColumns.length > 0 && selectedFunc && (
+            <>
+              <FormField
+                type="dropdown"
+                control={popUpControl}
+                required="Column selection is required"
+                options={funcColumns.map((col) => ({
+                  label: col,
+                  value: col,
+                }))}
+                name="y"
+                label="Select columns (sayısal veriler, tarih vb)"
+              />
+              <FormField
+                type="dropdown"
+                control={popUpControl}
+                required="Row selection is required"
+                options={funcColumns.map((col) => ({
                   label: col,
                   value: col,
                 }))}
@@ -237,7 +345,7 @@ const DbConnection = () => {
             </>
           )}
           <Button
-            onClick={popHandle(onSubmitt)}
+            onClick={popUpHandle(redirectToChart)}
             label="Submit"
             severity="success"
             text

@@ -5,8 +5,6 @@ export enum DbSystem {
 }
 export const DbSystemOptions = [
   { label: "PostgreSQL", value: DbSystem.PostgreSQL },
-  { label: "MongoDb", value: DbSystem.MongoDb },
-  { label: "MsSQL", value: DbSystem.MsSQL },
 ];
-export const CharTypeOptions = [ "Line Chart" ,  "Bar Chart" ];
-export const ViewSpOptions = [{ label: "View" }, { label: "Sp" }];
+export const CharTypeOptions = ["Line Chart", "Bar Chart"];
+export const ViewSpOptions = ["View", "Sp"];

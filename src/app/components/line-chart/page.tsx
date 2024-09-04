@@ -1,81 +1,128 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Chart } from "primereact/chart";
-import { ViewType } from "@/app/services/DbService";
+import { useSearchParams } from "next/navigation";
+import { getColumnsData, getFuncColumnsData } from "@/app/services/DbService";
 
-interface LineChartProps {
-  view: string; columns: string[]
+export interface YColumn {
+  column: {
+    name: string;
+    values: string[];
+  }[];
+}
+export interface ResponseData {
+  xColumn: XColumn;
+  yColumn: YColumn[];
+}
+export interface XColumn {
+  name: string;
+  values: string[];
 }
 
-export default function LineChart({ view, columns }: LineChartProps) {
-  const [chartData, setChartData] = useState({});
-  const [chartOptions, setChartOptions] = useState({});
+export default function LineChart() {
+  const [chartData, setChartData] = useState<any>({});
+  const [chartOptions, setChartOptions] = useState<any>({});
+  const searchParams = useSearchParams();
+
+  const x = searchParams.get("x") || "";
+  const viewName = searchParams.get("viewName") || "";
+  const y = JSON.parse(decodeURIComponent(searchParams.get("y") || "[]"));
+  const connectionString = searchParams.get("connStr") || "";
+  const isFunc = searchParams.get("isFunc") === "true"; // Function mı yoksa View mı
 
   useEffect(() => {
-    const documentStyle = getComputedStyle(document.documentElement);
-    const textColor = documentStyle.getPropertyValue("--text-color");
-    const textColorSecondary = documentStyle.getPropertyValue(
-      "--text-color-secondary"
-    );
-    const surfaceBorder = documentStyle.getPropertyValue("--surface-border");
-    const data = {
-      labels: ["January", "February", "March", "April", "May", "June", "July"],
-      datasets: [
-        {
-          label: "First Dataset",
-          data: [64, 59, 80, 81, 56, 55, 40],
-          fill: false,
-          borderColor: documentStyle.getPropertyValue("--blue-500"),
-          tension: 0.4,
-        },
-        {
-          label: "First Dataset",
-          data: [65, 59, 80, 81, 56, 55, 40],
-          fill: false,
-          borderColor: documentStyle.getPropertyValue("--blue-500"),
-          tension: 0.4,
-        },
-      ],
-    };
-    const options = {
-      maintainAspectRatio: false,
-      aspectRatio: 0.6,
-      plugins: {
-        legend: {
-          labels: {
-            color: textColor,
+    const fetchData = async () => {
+      try {
+        console.log("isFunc: ", isFunc);
+        let response: ResponseData;
+
+        if (isFunc) {
+          response = await getFuncColumnsData(connectionString, viewName, x, y);
+        } else {
+          response = await getColumnsData(connectionString, viewName, x, y);
+        }
+
+        console.log("Response Data: ", response);
+
+        const xLabels = response.xColumn.values;
+
+        const datasets = response.yColumn.flatMap((yCol) =>
+          yCol.column.map((col) => ({
+            label: col.name,
+            data: col.values.map((value) =>
+              parseFloat(value.replace(",", "."))
+            ),
+            fill: false,
+            tension: 0.4,
+          }))
+        );
+
+        console.log("Datasets: ", datasets);
+
+        const data = {
+          labels: xLabels,
+          datasets: datasets,
+        };
+
+        const documentStyle = getComputedStyle(document.documentElement);
+        const textColor = documentStyle.getPropertyValue("--text-color");
+        const textColorSecondary = documentStyle.getPropertyValue(
+          "--text-color-secondary"
+        );
+        const surfaceBorder =
+          documentStyle.getPropertyValue("--surface-border");
+
+        const options = {
+          maintainAspectRatio: false,
+          aspectRatio: 0.6,
+          plugins: {
+            title: {
+              display: true,
+              text: viewName, // Grafiğin başlığı
+              color: textColor,
+              font: {
+                size: 20,
+              },
+            },
+            legend: {
+              labels: {
+                color: textColor,
+              },
+            },
           },
-        },
-      },
-      scales: {
-        x: {
-          ticks: {
-            color: textColorSecondary,
+          scales: {
+            x: {
+              ticks: {
+                color: textColorSecondary,
+              },
+              grid: {
+                color: surfaceBorder,
+              },
+            },
+            y: {
+              ticks: {
+                color: textColorSecondary,
+              },
+              grid: {
+                color: surfaceBorder,
+              },
+            },
           },
-          grid: {
-            color: surfaceBorder,
-          },
-        },
-        y: {
-          ticks: {
-            color: textColorSecondary,
-          },
-          grid: {
-            color: surfaceBorder,
-          },
-        },
-      },
+        };
+
+        setChartData(data);
+        setChartOptions(options);
+      } catch (error) {
+        console.error("Error fetching chart data:", error);
+      }
     };
 
-    setChartData(data);
-    setChartOptions(options);
-  }, []);
+    fetchData();
+  }, [connectionString, viewName, x, y, isFunc]);
 
   return (
-    <>
-      <div className="card">
-        <Chart type="line" data={chartData} options={chartOptions} />
-      </div>
-    </>
+    <div className="card">
+      <Chart type="line" data={chartData} options={chartOptions} />
+    </div>
   );
 }
