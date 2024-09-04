@@ -36,7 +36,7 @@ export type FormFieldType = {
   name: string;
   label: string;
   required?: string;
-  type: "dropdown" | "text" | "number" | "multiselect"; // "multiselect" seçeneğini ekleyin
+  type: "dropdown" | "text" | "number" | "multiselect"; 
   options?: SelectItemOptionsType | undefined;
   disabled?: boolean;
   onchange?: MultiSelectChangeEvent;
