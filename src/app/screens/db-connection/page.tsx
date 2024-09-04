@@ -210,7 +210,7 @@ const DbConnection = () => {
   return (
     <>
       <Toast ref={toast} />
-      <div className="card col-6 p-fluid">
+      <div className="card col-12 p-fluid">
         <FormField
           type="dropdown"
           control={control}
@@ -302,7 +302,7 @@ const DbConnection = () => {
                   value: col,
                 }))}
                 name="y"
-                label="Select columns (sayısal veriler, tarih vb)"
+                label="Select columns (numerical data required)"
               />
               <FormField
                 type="dropdown"
